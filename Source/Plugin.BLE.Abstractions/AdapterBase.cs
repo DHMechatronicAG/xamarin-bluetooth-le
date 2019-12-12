@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,12 +46,12 @@ namespace Plugin.BLE.Abstractions
 
         public IReadOnlyList<IDevice> ConnectedDevices => ConnectedDeviceRegistry.Values.ToList();
 
-        public async Task StartScanningForDevicesAsync(Guid[] serviceUuids = null, Func<IDevice, bool> deviceFilter = null, bool allowDuplicatesKey = false, CancellationToken cancellationToken = default)
+        public async Task<Boolean> StartScanningForDevicesAsync(Guid[] serviceUuids = null, Func<IDevice, bool> deviceFilter = null, bool allowDuplicatesKey = false, CancellationToken cancellationToken = default)
         {
             if (IsScanning)
             {
                 Trace.Message("Adapter: Already scanning!");
-                return;
+                return true;
             }
 
             IsScanning = true;
@@ -64,18 +65,30 @@ namespace Plugin.BLE.Abstractions
 
                 using (cancellationToken.Register(() => _scanCancellationTokenSource?.Cancel()))
                 {
-                    await StartScanningForDevicesNativeAsync(serviceUuids, allowDuplicatesKey, _scanCancellationTokenSource.Token);
-                    await Task.Delay(ScanTimeout, _scanCancellationTokenSource.Token);
-                    Trace.Message("Adapter: Scan timeout has elapsed.");
+                    bool tResult = await this.StartScanningForDevicesNativeAsync(serviceUuids, allowDuplicatesKey, this._scanCancellationTokenSource.Token);
+
+                    // If the scan failed to start, we dont need to wait around for nothing
+                    if (tResult)
+                    {
+                        await Task.Delay(this.ScanTimeout, this._scanCancellationTokenSource.Token);
+                        Trace.Message("Adapter: Scan timeout has elapsed.");
+                    }
+
                     CleanupScan();
                     ScanTimeoutElapsed?.Invoke(this, new System.EventArgs());
+
+                    return tResult;
                 }
             }
             catch (TaskCanceledException)
             {
                 CleanupScan();
                 Trace.Message("Adapter: Scan was cancelled.");
+
+                return true;
             }
+
+            return false;
         }
 
         public Task StopScanningForDevicesAsync()
@@ -232,7 +245,7 @@ namespace Plugin.BLE.Abstractions
             });
         }
 
-        protected abstract Task StartScanningForDevicesNativeAsync(Guid[] serviceUuids, bool allowDuplicatesKey, CancellationToken scanCancellationToken);
+        protected abstract Task<Boolean> StartScanningForDevicesNativeAsync(Guid[] serviceUuids, bool allowDuplicatesKey, CancellationToken scanCancellationToken);
         protected abstract void StopScanNative();
         protected abstract Task ConnectToDeviceNativeAsync(IDevice device, ConnectParameters connectParameters, CancellationToken cancellationToken);
         protected abstract void DisconnectDeviceNative(IDevice device);

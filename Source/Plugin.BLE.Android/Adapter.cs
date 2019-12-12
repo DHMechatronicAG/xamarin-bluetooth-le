@@ -51,7 +51,7 @@ namespace Plugin.BLE.Android
             }
         }
 
-        protected override Task StartScanningForDevicesNativeAsync(Guid[] serviceUuids, bool allowDuplicatesKey, CancellationToken scanCancellationToken)
+        protected override Task<Boolean> StartScanningForDevicesNativeAsync(Guid[] serviceUuids, bool allowDuplicatesKey, CancellationToken scanCancellationToken)
         {
             if (Build.VERSION.SdkInt < BuildVersionCodes.Lollipop)
             {
