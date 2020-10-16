@@ -12,6 +12,7 @@
     <RootNamespace>BLE.Server.Droid</RootNamespace>
     <AssemblyName>BLE.Server.Droid</AssemblyName>
     <FileAlignment>512</FileAlignment>
+	<LangVersion>8.0</LangVersion>
     <AndroidApplication>true</AndroidApplication>
     <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
