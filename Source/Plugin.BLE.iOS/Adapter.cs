@@ -142,7 +142,7 @@ namespace Plugin.BLE.iOS
                 };
         }
 
-        protected override async Task StartScanningForDevicesNativeAsync(Guid[] serviceUuids, bool allowDuplicatesKey, CancellationToken scanCancellationToken)
+        protected override async Task<bool> StartScanningForDevicesNativeAsync(Guid[] serviceUuids, bool allowDuplicatesKey, CancellationToken scanCancellationToken)
         {
             // Wait for the PoweredOn state
             await WaitForState(CBCentralManagerState.PoweredOn, scanCancellationToken).ConfigureAwait(false);
@@ -160,6 +160,8 @@ namespace Plugin.BLE.iOS
             }
 
             _centralManager.ScanForPeripherals(serviceCbuuids, new PeripheralScanningOptions { AllowDuplicatesKey = allowDuplicatesKey });
+
+            return true;
         }
 
         protected override void DisconnectDeviceNative(IDevice device)
