@@ -106,7 +106,7 @@ namespace Plugin.BLE.UWP
             // Windows doesn't support disconnecting, so currently just dispose of the device
             Trace.Message($"Disconnected from device with ID:  {device.Id.ToString()}");
 
-            ((Device)device).DisposeServices();
+            ((Device)device).ClearServices();
             if (device.NativeDevice is ObservableBluetoothLEDevice nativeDevice)
             {
                 nativeDevice.BluetoothLEDevice.Dispose();
@@ -167,7 +167,7 @@ namespace Plugin.BLE.UWP
                 var bluetoothLeDevice = await BluetoothLEDevice.FromBluetoothAddressAsync(btAdv.BluetoothAddress);
                 if (bluetoothLeDevice != null) //make sure advertisement bluetooth address actually returns a device
                 {
-                    device = new Device(this, bluetoothLeDevice, btAdv.RawSignalStrengthInDBm, deviceId, ParseAdvertisementData(btAdv.Advertisement));
+                    device = new Device(this, bluetoothLeDevice, btAdv.RawSignalStrengthInDBm, deviceId, ParseAdvertisementData(btAdv.Advertisement), this._bluetoothHelper.DispatcherQueue);
                     Trace.Message("DiscoveredPeripheral: {0} Id: {1}, Rssi: {2}", device.Name, device.Id, btAdv.RawSignalStrengthInDBm);
                     this.HandleDiscoveredDevice(device);
                 }

@@ -1,11 +1,11 @@
-<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+﻿<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Plugin.BLE</id>
-    <version>2.2.0-pre2</version>
+    <version>2.2.0-pre3</version>
     <title>Bluetooth LE Plugin for Xamarin</title>
     <authors>Adrian Seceleanu, Sven-Michael Stübe</authors>
     <owners>Adrian Seceleanu, Sven-Michael Stübe</owners>
-    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <license type="expression">Apache-2.0</license>
     <projectUrl>https://github.com/xabre/xamarin-bluetooth-le</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
@@ -23,7 +23,7 @@
       [2.2.0-pre1]
       - UWP support
       [2.1.1]
-      - iOS #373, #377 Fixed trace ouptut that caused NRE. 
+      - iOS #373, #377 Fixed trace ouptut that caused NRE.
       [2.1.0]
       - Use IReadOnlyLists for Services/ Charactersitics/ Descriptors and concurrent collections for DiscoveredDevices/ConnectedDevices
 Should prevent crashes like: #320
@@ -88,5 +88,7 @@ Should prevent crashes like: #320
     <file src="out\lib\macOS\Plugin.BLE.*" target="lib\xamarinmac20" />
     <!-- uap -->
     <file src="out\lib\uwp\Plugin.BLE.*\Plugin.BLE.*" target="lib\uap10.0" />
+    <!-- icon -->
+    <file src="../icon_small.png" target="" />
   </files>
 </package>
