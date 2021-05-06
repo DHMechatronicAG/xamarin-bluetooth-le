@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Microsoft.Toolkit.Uwp.Connectivity;
 using Windows.Devices.Bluetooth;
-using Windows.System;
 using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Extensions;
@@ -14,8 +13,8 @@ namespace Plugin.BLE.UWP
 {
     public class Device : DeviceBase<ObservableBluetoothLEDevice>
     {
-        public Device(Adapter adapter, BluetoothLEDevice nativeDevice, int rssi, Guid id, IReadOnlyList<AdvertisementRecord> advertisementRecords = null, DispatcherQueue dispatcherQueue = null) 
-            : base(adapter, new ObservableBluetoothLEDevice(nativeDevice.DeviceInformation, dispatcherQueue))
+        public Device(Adapter adapter, BluetoothLEDevice nativeDevice, int rssi, Guid id, IReadOnlyList<AdvertisementRecord> advertisementRecords = null) 
+            : base(adapter, new ObservableBluetoothLEDevice(nativeDevice.DeviceInformation)) 
         {
             Rssi = rssi;
             Id = id;
@@ -79,6 +78,18 @@ namespace Plugin.BLE.UWP
         {
             Trace.Message("Update Connection Interval not supported in UWP");
             return false;
+        }
+
+        public override void Dispose()
+        {
+            NativeDevice.Services.ToList().ForEach(s => 
+            {
+                s?.Service?.Session?.Dispose();
+                s?.Service?.Dispose();
+            });
+
+            NativeDevice.BluetoothLEDevice?.Dispose();            
+            GC.Collect();
         }
     }
 }
