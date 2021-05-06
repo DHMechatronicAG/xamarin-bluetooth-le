@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Toolkit.Uwp.Connectivity;
 using Windows.Devices.Bluetooth;
+using Windows.System;
 using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Extensions;
@@ -13,8 +14,8 @@ namespace Plugin.BLE.UWP
 {
     public class Device : DeviceBase<ObservableBluetoothLEDevice>
     {
-        public Device(Adapter adapter, BluetoothLEDevice nativeDevice, int rssi, Guid id, IReadOnlyList<AdvertisementRecord> advertisementRecords = null) 
-            : base(adapter, new ObservableBluetoothLEDevice(nativeDevice.DeviceInformation)) 
+        public Device(Adapter adapter, BluetoothLEDevice nativeDevice, int rssi, Guid id, IReadOnlyList<AdvertisementRecord> advertisementRecords = null, DispatcherQueue dispatcherQueue = null) 
+            : base(adapter, new ObservableBluetoothLEDevice(nativeDevice.DeviceInformation, dispatcherQueue)) 
         {
             Rssi = rssi;
             Id = id;
