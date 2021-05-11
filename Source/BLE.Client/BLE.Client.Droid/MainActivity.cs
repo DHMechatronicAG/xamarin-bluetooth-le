@@ -7,7 +7,6 @@ using Android.Views;
 using Android.Widget;
 using Android.OS;
 using MvvmCross.Forms.Platforms.Android.Views;
-using AndroidX.AppCompat.Widget;
 
 namespace BLE.Client.Droid
 {

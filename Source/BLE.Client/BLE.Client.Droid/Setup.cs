@@ -6,7 +6,6 @@ using Android.Content;
 using MvvmCross.ViewModels;
 using MvvmCross;
 using MvvmCross.Forms.Platforms.Android.Core;
-using MvvmCross.IoC;
 using Plugin.Permissions;
 using Plugin.Settings;
 
@@ -19,15 +18,13 @@ namespace BLE.Client.Droid
             return new List<Assembly>(base.GetViewAssemblies().Union(new[] { typeof(BleMvxFormsApp).GetTypeInfo().Assembly }));
         }
 
-        protected override IMvxIoCProvider InitializeIoC()
+        protected override void InitializeIoC()
         {
-            var tProvider = base.InitializeIoC();
+            base.InitializeIoC();
 
             Mvx.IoCProvider.RegisterSingleton(() => UserDialogs.Instance);
             Mvx.IoCProvider.RegisterSingleton(() => CrossSettings.Current);
             Mvx.IoCProvider.RegisterSingleton(() => CrossPermissions.Current);
-
-            return tProvider;
         }
     }
 }
