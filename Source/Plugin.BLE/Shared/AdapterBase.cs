@@ -114,10 +114,28 @@ public abstract class AdapterBase : IAdapter
 	public IReadOnlyList<IDevice> BondedDevices => GetBondedDevices();
 
 	/// <summary>
-	/// Starts scanning for BLE devices that fulfill the <paramref name="deviceFilter"/>.
-	/// DeviceDiscovered will only be called, if <paramref name="deviceFilter"/> returns <c>true</c> for the discovered device.
+        /// Clear all cached device registries
+        /// (discovered or connected devices).
 	/// </summary>
-	public async Task StartScanningForDevicesAsync(ScanFilterOptions scanFilterOptions, Func<IDevice, bool> deviceFilter = null, bool allowDuplicatesKey = false, CancellationToken cancellationToken = default)
+        public void ClearDeviceRegistries()
+        {
+            foreach (var device in ConnectedDeviceRegistry.Values.ToList())
+            {
+                ((IDevice)device).ClearServices();
+                HandleDisconnectedDevice(false, device);
+            }
+            ConnectedDeviceRegistry.Clear();
+            DiscoveredDevicesRegistry.Clear();
+        }
+
+        /// <summary>
+        /// Starts scanning for BLE devices that fulfill the <paramref name="deviceFilter"/>.
+        /// DeviceDiscovered will only be called, if <paramref name="deviceFilter"/> returns <c>true</c> for the discovered device.
+        /// </summary>
+        public async Task StartScanningForDevicesAsync(ScanFilterOptions scanFilterOptions,
+            Func<IDevice, bool> deviceFilter = null,
+            bool allowDuplicatesKey = false,
+            CancellationToken cancellationToken = default)
 	{
 		if (IsScanning)
 		{
