@@ -19,35 +19,16 @@ namespace Plugin.BLE.Windows
         private readonly BluetoothAdapter _bluetoothAdapter;
         private BluetoothLEAdvertisementWatcher _bleWatcher;
 
-		/// <summary>
+        /// <summary>
         /// Registry used to store device instances for pending disconnect operations
         /// Helps to detect connection lost events.
         /// </summary>
         private readonly IDictionary<string, IDevice> disconnectingRegistry = new ConcurrentDictionary<string, IDevice>();
 
-		private readonly DeviceWatcher _pairedDeviceWatcher;
-
-		public Adapter(BluetoothAdapter adapter)
-		{
-			_bluetoothAdapter = adapter;
-
-			ConcurrentDictionary<string, Device> bondedDevices = new();
-			_pairedDeviceWatcher = DeviceInformation.CreateWatcher(BluetoothLEDevice.GetDeviceSelectorFromPairingState(true));
-
-			_pairedDeviceWatcher.Added += (_, args) =>
-			{
-                if ((Device)GetBondedDevices().First(dev => dev.Id == args.Id.ToBleDeviceGuidFromId()) is { } device)
-					HandleDeviceBondStateChanged(new() { Device = bondedDevices[args.Id] = device, Address = args.Id.ToBleDeviceGuidFromId().ToBleAddress().ToHexBleAddress(), State = DeviceBondState.Bonded });
-			};
-
-			_pairedDeviceWatcher.Removed += (_, args) =>
-			{
-				if (bondedDevices.TryRemove(args.Id, out Device device))
-					HandleDeviceBondStateChanged(new() { Device = device, Address = args.Id.ToBleDeviceGuidFromId().ToBleAddress().ToHexBleAddress(), State = DeviceBondState.NotBonded });
-			};
-
-			_pairedDeviceWatcher.Start();
-		}
+        public Adapter(BluetoothAdapter adapter)
+        {
+            _bluetoothAdapter = adapter;
+        }
 
         public override async Task BondAsync(IDevice device)
         {
@@ -339,6 +320,60 @@ namespace Plugin.BLE.Windows
         public override bool SupportsExtendedAdvertising()
         {
             return _bluetoothAdapter.IsExtendedAdvertisingSupported;
+        }
+
+        public async Task<WindowsBondResult> BondAsync(IDevice device, WindowsBondingOptions options, CancellationToken cancellationToken = default)
+        {
+            if (device == null)
+                throw new ArgumentNullException(nameof(device), "Invalid Device");
+
+            if (device.NativeDevice is not BluetoothLEDevice bluetoothLeDevice)
+                throw new ArgumentException($"Invalid argument property {nameof(device.NativeDevice)}", nameof(device));
+
+            DeviceInformation deviceInformation = null;
+            try
+            {
+                deviceInformation = await DeviceInformation.CreateFromIdAsync(bluetoothLeDevice.DeviceId).AsTask(cancellationToken);
+
+                if (deviceInformation.Pairing.IsPaired)
+                {
+                    const DevicePairingResultStatus status = DevicePairingResultStatus.AlreadyPaired;
+                    return new(status.XPlatformParigingResultStatus(), $"{status}");
+                }
+
+                if (!deviceInformation.Pairing.CanPair)
+                {
+                    const DevicePairingResultStatus status = DevicePairingResultStatus.NotReadyToPair;
+                    return new(status.XPlatformParigingResultStatus(), $"{status}");
+                }
+
+                cancellationToken.ThrowIfCancellationRequested(); // check for cancel after allowing it to use the awaited to exit gracefully, but before subsequent awaited code
+
+                deviceInformation.Pairing.Custom.PairingRequested += PairingRequestedHandler;
+
+                DevicePairingResult result;
+                if (options == null)
+                    result = await deviceInformation.Pairing.PairAsync().AsTask(cancellationToken); // support legacy versions of this API (just works?)
+                else
+                {
+                    var requestedModes = options.RequestedModes;
+                    var requestedProtection = options.MinimumRequestedProtection;
+                    result = await deviceInformation.Pairing.Custom.PairAsync(requestedModes.ToNative(), requestedProtection.ToNative()).AsTask(cancellationToken);
+                }
+
+                Trace.Message($"Pairing {nameof(result)}: {result.Status}");
+                return new(result.Status.XPlatformParigingResultStatus(), $"{result.Status}", result.ProtectionLevelUsed.XPlatformParigingResultStatus());
+            }
+            catch (Exception exception)
+            {
+                Trace.Message(exception.Message);
+                throw;
+            }
+            finally
+            {
+                if (deviceInformation != null)
+                    deviceInformation.Pairing.Custom.PairingRequested -= PairingRequestedHandler;
+            }
         }
     }
 }
