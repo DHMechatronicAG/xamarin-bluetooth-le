@@ -11,10 +11,11 @@ using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Extensions;
 using System.Collections.Concurrent;
 using Windows.Devices.Enumeration;
+using Plugin.BLE.Contracts.BondingWindows;
 
 namespace Plugin.BLE.Windows
 {
-    public class Adapter : AdapterBase
+    public class Adapter : AdapterBase, IBondingWindows
     {
         private readonly BluetoothAdapter _bluetoothAdapter;
         private BluetoothLEAdvertisementWatcher _bleWatcher;
