@@ -336,13 +336,41 @@ namespace Plugin.BLE.iOS
                                 // 128-bit UUID
                                 records.Add(new AdvertisementRecord(AdvertisementRecordType.UuidsComplete128Bit, cbuuid.Data.ToArray()));
                                 break;
-                            case 8:
+                            case 4:
                                 // 32-bit UUID
-                                records.Add(new AdvertisementRecord(AdvertisementRecordType.UuidCom32Bit, cbuuid.Data.ToArray()));
+                                records.Add(new AdvertisementRecord(AdvertisementRecordType.UuidsComplete32Bit, cbuuid.Data.ToArray()));
                                 break;
                             case 2:
                                 // 16-bit UUID
                                 records.Add(new AdvertisementRecord(AdvertisementRecordType.UuidsComplete16Bit, cbuuid.Data.ToArray()));
+                                break;
+                            default:
+                                // Invalid data length for UUID
+                                break;
+                        }
+                    }
+                }
+                else if (key == CBAdvertisement.DataSolicitedServiceUUIDsKey)
+                {
+                    var array = (NSArray)advertisementData.ObjectForKey(key);
+
+                    for (nuint i = 0; i < array.Count; i++)
+                    {
+                        var cbuuid = array.GetItem<CBUUID>(i);
+
+                        switch (cbuuid.Data.Length)
+                        {
+                            case 16:
+                                // 128-bit solicited service UUID
+                                records.Add(new AdvertisementRecord(AdvertisementRecordType.SsUuids128Bit, cbuuid.Data.ToArray()));
+                                break;
+                            case 4:
+                                // 32-bit solicited service UUID
+                                records.Add(new AdvertisementRecord(AdvertisementRecordType.SsUuids32Bit, cbuuid.Data.ToArray()));
+                                break;
+                            case 2:
+                                // 16-bit solicited service UUID
+                                records.Add(new AdvertisementRecord(AdvertisementRecordType.SsUuids16Bit, cbuuid.Data.ToArray()));
                                 break;
                             default:
                                 // Invalid data length for UUID
@@ -387,7 +415,24 @@ namespace Plugin.BLE.iOS
                         Buffer.BlockCopy(keyAsData, 0, arr, 0, keyAsData.Length);
                         Buffer.BlockCopy(valueAsData, 0, arr, keyAsData.Length, valueAsData.Length);
 
-                        records.Add(new AdvertisementRecord(AdvertisementRecordType.ServiceData, arr));
+                        AdvertisementRecordType recordType;
+                        switch (keyAsData.Length)
+                        {
+                            case 2:
+                                recordType = AdvertisementRecordType.ServiceDataUuid16Bit;
+                                break;
+                            case 4:
+                                recordType = AdvertisementRecordType.ServiceDataUuid32Bit;
+                                break;
+                            case 16:
+                                recordType = AdvertisementRecordType.ServiceDataUuid128Bit;
+                                break;
+                            default:
+                                Trace.Message("Parsing Advertisement: Unexpected service UUID length {0} bytes in service data. Skipping.", keyAsData.Length);
+                                continue;
+                        }
+
+                        records.Add(new AdvertisementRecord(recordType, arr));
                     }
                 }
                 else if (key == CBAdvertisement.IsConnectable)
