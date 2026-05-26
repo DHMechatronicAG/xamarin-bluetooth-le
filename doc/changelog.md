@@ -2,6 +2,15 @@
 
 ## 3.3 .NET 10
 
+### 3.3.0-beta.2
+- #988 Fix iOS solicited service UUIDs missing from advertisement records (fixes #985)
+- #989 Fix iOS 32 bit UUIDs missing from advertisement records
+- #990 Fix inconsistent AdvertisementRecordType names
+- #991 Clean up and extend known services, descriptors and characteristics
+- #993 Fix Android hanging on disconnection when status is Limited
+- #994 Add option to ConnectParameters: CheckIsLeDeviceType (fixes #877)
+- #996 Readme: update links and move usage information to separate file
+
 ### 3.3.0-beta.1
 - #980 Update to .NET 10, remove .NET 8 and Xamarin (fixes #968)
 - #979 Apple: Update default GetSystemConnectedOrPaired behaviour
@@ -130,7 +139,7 @@
 - UWP support pre-release
 
 
-## 2.1 MacOS  
+## 2.1 macOS  
 
 ### 2.1.3
 - Feature: additional scan filtering on Android, for manufacturer data, service data, device adress or device name (fixes #515)
@@ -152,7 +161,7 @@
 ### 2.1.1 Service Release for 2.1.0
 - [iOS] #373, #377 Fixed trace output that caused NRE.
 
-### 2.1.0 Stable Release MacOS
+### 2.1.0 Stable Release macOS
 - Use IReadOnlyLists for Services/Characteristics/Descriptors and concurrent collections for DiscoveredDevices/ConnectedDevices
 Should prevent crashes like: #320
 
